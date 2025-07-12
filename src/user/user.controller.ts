@@ -7,9 +7,15 @@ export class UserController {
 
     constructor(private readonly userService:UserService){}
 
-    @Post()
-    create(@Body() userDto:UserDto){
+    @Post('register/customer')
+    createCustomer(@Body() userDto:UserDto){
         console.log('Incoming :',userDto);
-        return this.userService.create(userDto);
+        return this.userService.create(userDto,'customer');
+    }
+
+    @Post('register/delivery_patner')
+    createDeliveryAgent(@Body() userDto:UserDto){
+        console.log('Incoming :',userDto);
+        return this.userService.create(userDto,'delivery_patner');
     }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -9,12 +9,20 @@ export class AuthController {
 
     constructor(private authService:AuthService){}
 
-    @Post('register')
-    register(@Body() dto:RegisterDto){
-        return this.authService.register(dto);
+    @Post('register/customer')
+    @HttpCode(200)
+    registerCustomer(@Body() dto:RegisterDto){
+        return this.authService.register(dto,'customer');
+    }
+
+    @Post('register/delivery_patner')
+    @HttpCode(200)
+    registerDeliveryAgent(@Body() dto:RegisterDto){
+        return this.authService.register(dto,'delivery_patner');
     }
 
     @Post('login')
+    @HttpCode(200)
     login(@Body() dto:LoginDto){
         return this.authService.login(dto);
     }
@@ -26,6 +34,7 @@ export class AuthController {
 
     @UseGuards(JwtAuthGuard)
     @Get('me')
+    @HttpCode(200)
     getMe(@Request() req){
         return req.user;
     }

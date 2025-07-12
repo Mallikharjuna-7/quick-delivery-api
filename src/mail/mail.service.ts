@@ -1,0 +1,35 @@
+import { Injectable } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
+
+@Injectable()
+export class MailService {
+
+    private transporter;
+
+    constructor(){
+        this.transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'malli.test6162@gmail.com',
+                pass: 'rpso pmgq whlg wiys',
+            },
+        });
+    }
+
+    async sendWelcomeEmail(to:String, role:string){
+        const subject = `Welcome ${role === 'customer'?'Customer':'Delivery Patner'}`;
+
+        const message = role === 'customer'?`Hi! Thankyou you for registering as a valued customer.`
+        :`Hi! Thankyou you for registering as a valued Delivery Patner.`;
+
+        const mailOptions = {
+            from: 'malli.test6162@gmail.com',
+            to,
+            subject,
+            html: `<h2>${subject}</h2> <p>${message}</p>`,
+        };
+
+        return this.transporter.sendMail(mailOptions);
+
+    }
+}

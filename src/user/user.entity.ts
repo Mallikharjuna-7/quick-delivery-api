@@ -21,5 +21,6 @@ export class UserEntity {
     @Column()
     age : number;
 
-
+    @Column()
+    role: string;
 }

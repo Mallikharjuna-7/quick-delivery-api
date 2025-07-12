@@ -6,25 +6,30 @@ import { UserEntity } from 'src/user/user.entity';
 import { Repository } from 'typeorm';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
 
     constructor(@InjectRepository(UserEntity)
                 private userRepo : Repository<UserEntity>,
-                private jwtService : JwtService){}
+                private jwtService : JwtService,
+                private mailService : MailService){    
+    }
 
-    async register(dto : RegisterDto){
+    async register(dto:RegisterDto, role:string):Promise<any>{
 
         const exists = await this.userRepo.findOne({where:{email:dto.email}});
         if(exists) throw new ConflictException('Email already registered');
 
         const hashedPassword = await bcrypt.hash(dto.password,10);
-        const user = this.userRepo.create({...dto,password:hashedPassword});
+        const user = this.userRepo.create({...dto,password:hashedPassword,role});
         await this.userRepo.save(user);
 
-        return {message : 'Registration successfull',
-                statusCode : 200,
+        await this.mailService.sendWelcomeEmail(user.email,role);
+
+        return {statusCode : 200,
+                message : 'Registration successfull',  
                 error:''
         };
     }
@@ -32,12 +37,12 @@ export class AuthService {
     async login(dto : LoginDto){
 
         const user = await this.userRepo.findOne({where:{email:dto.email}});
-        if(!user) throw new UnauthorizedException('Invalid email or password');
+        if(!user) throw new UnauthorizedException('Invalid email');
 
         const isMatch = await bcrypt.compare(dto.password,user.password);
-        if(!isMatch) throw new UnauthorizedException('Invalid email or password');
+        if(!isMatch) throw new UnauthorizedException('Invalid password');
 
-        const payload = {sub:user.id, email:user.email};
+        const payload = {id:user.id, email:user.email};
         
         const accessToken = await this.jwtService.signAsync(payload,{
             secret:'access_secret',
@@ -58,6 +63,7 @@ export class AuthService {
                 lastName:user.lastName,
                 email:user.email,
                 age:user.age,
+                role:user.role,
             },
         };
     }
@@ -67,11 +73,11 @@ export class AuthService {
             const payload = await this.jwtService.verifyAsync(refresh_token,{ secret:'refresh_secret',});
             
             const newAccessToken = await this.jwtService.signAsync(
-                {sub:payload.sub, email:payload.email},{secret:'access-secret',expiresIn:'15m'},
+                {id:payload.sub, email:payload.email},{secret:'access-secret',expiresIn:'15m'},
             );
 
             const newRefreshToken = await this.jwtService.signAsync(
-                {sub:payload.sub, email:payload.email},{secret:'refresh-secret',expiresIn:'30m'},
+                {id:payload.sub, email:payload.email},{secret:'refresh-secret',expiresIn:'30m'},
             );
 
             return {

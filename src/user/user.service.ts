@@ -12,8 +12,8 @@ export class UserService {
         private userRepo:Repository<UserEntity>,
     ){}
 
-    async create(userDto:UserDto):Promise<UserEntity>{
-        const user = this.userRepo.create(userDto);
+    async create(userDto:UserDto, role:string):Promise<UserEntity>{
+        const user = this.userRepo.create({...userDto,role,});
         const savedUser = await this.userRepo.save(user);
         console.log('databse :',savedUser);
         return savedUser;
