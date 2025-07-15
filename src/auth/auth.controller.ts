@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -18,6 +19,7 @@ export class AuthController {
     @Post('register/delivery_patner')
     @HttpCode(200)
     registerDeliveryAgent(@Body() dto:RegisterDto){
+        console.log("xyz -- dto:", dto)
         return this.authService.register(dto,'delivery_patner');
     }
 
@@ -37,5 +39,17 @@ export class AuthController {
     @HttpCode(200)
     getMe(@Request() req){
         return req.user;
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('update_password')
+    async updatePassword(
+        @Request() req,
+        @Body() body: UpdatePasswordDto,
+    ){
+        const userId = req.user.userId;
+
+        console.log('User ID:', userId);
+        return this.authService.updatePassword(userId,body);
     }
 }

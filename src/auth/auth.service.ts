@@ -7,19 +7,23 @@ import { Repository } from 'typeorm';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { MailService } from 'src/mail/mail.service';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class AuthService {
 
     constructor(@InjectRepository(UserEntity)
                 private userRepo : Repository<UserEntity>,
+                private userService : UserService,
                 private jwtService : JwtService,
                 private mailService : MailService){    
     }
 
     async register(dto:RegisterDto, role:string):Promise<any>{
-
+        console.log("dto: ", dto)
         const exists = await this.userRepo.findOne({where:{email:dto.email}});
+        console.log("Exists: ", exists);
         if(exists) throw new ConflictException('Email already registered');
 
         const hashedPassword = await bcrypt.hash(dto.password,10);
@@ -42,7 +46,7 @@ export class AuthService {
         const isMatch = await bcrypt.compare(dto.password,user.password);
         if(!isMatch) throw new UnauthorizedException('Invalid password');
 
-        const payload = {id:user.id, email:user.email};
+        const payload = {sub:user.id, email:user.email};
         
         const accessToken = await this.jwtService.signAsync(payload,{
             secret:'access_secret',
@@ -73,11 +77,11 @@ export class AuthService {
             const payload = await this.jwtService.verifyAsync(refresh_token,{ secret:'refresh_secret',});
             
             const newAccessToken = await this.jwtService.signAsync(
-                {id:payload.sub, email:payload.email},{secret:'access-secret',expiresIn:'15m'},
+                {sub:payload.sub, email:payload.email},{secret:'access-secret',expiresIn:'15m'},
             );
 
             const newRefreshToken = await this.jwtService.signAsync(
-                {id:payload.sub, email:payload.email},{secret:'refresh-secret',expiresIn:'30m'},
+                {sub:payload.sub, email:payload.email},{secret:'refresh-secret',expiresIn:'30m'},
             );
 
             return {
@@ -88,5 +92,19 @@ export class AuthService {
         }catch(err){
             throw new UnauthorizedException('invalid refresh token');
         }
+    }
+
+    async updatePassword(userId: number, dto:UpdatePasswordDto){
+        const user = await this.userService.findById(userId);
+
+        const isMatch = await bcrypt.compare(dto.oldPassword, user?.password);
+        if(!isMatch) {
+            throw new UnauthorizedException('Old password is incorrect');
+        }
+
+        const newHashed = await bcrypt.hash(dto.newPassword,10);
+        await this.userService.updatePassword(userId,newHashed);
+
+        return { message : 'Password updated successfully'};
     }
 }
