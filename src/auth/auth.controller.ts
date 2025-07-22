@@ -4,6 +4,8 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { ForgetPasswordDto } from './dto/forget-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -51,5 +53,16 @@ export class AuthController {
 
         console.log('User ID:', userId);
         return this.authService.updatePassword(userId,body);
+    }
+
+    @HttpCode(200)
+    @Post('forget_password')
+    async forgetPassword(@Body() body:ForgetPasswordDto){
+        return this.authService.sendResetLink(body.email);
+    }
+
+    @Post('reset_password')
+    async resetPassword(@Body() body:ResetPasswordDto){
+        return this.authService.resetPassword(body.token,body.newPassword);
     }
 }

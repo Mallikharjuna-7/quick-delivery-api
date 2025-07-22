@@ -32,4 +32,15 @@ export class MailService {
         return this.transporter.sendMail(mailOptions);
 
     }
+
+    async sendResetPasswordEmail(to:string, resetLink:string){
+        await this.transporter.sendMail({
+            to,
+            subject:'Reset Your Password',
+            html:`
+            <p>You requested to reset your password.</p>
+            <p>Click <a href="${resetLink}">here</a> to reset. This link is valid for 15minutes only.</p>
+            `,
+        });
+    }
 }

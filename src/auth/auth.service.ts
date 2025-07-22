@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -107,4 +107,51 @@ export class AuthService {
 
         return { message : 'Password updated successfully'};
     }
+
+    async sendResetLink(email:string){
+
+        if (!email || email.trim() === '') {
+            throw new BadRequestException('Email is required');
+        }
+
+        const user = await this.userRepo.findOne({where:{email}});
+
+        if(!user){
+            throw new UnauthorizedException('Email not registered');
+        }
+
+        const token = this.jwtService.sign(
+            {sub:user.id},
+            {secret:'reset_secret',expiresIn:'15m'},
+        );
+
+        const resetLink = `http://172.18.0.2:3000/reset_password?token=${token}`;
+        await this.mailService.sendResetPasswordEmail(user.email,resetLink);
+
+        console.log('ResetLink :',resetLink);
+
+        return { message : 'Reset link sent to your mail'};
+    }
+
+    async resetPassword(token:string, newPassword:string){
+        try{
+            const payload = this.jwtService.verify(token,{secret:'reset_secret'});
+            const user = await this.userRepo.findOne({where:{id:payload.sub}});
+
+            if(!user){
+                throw new UnauthorizedException('User not found');
+            }
+
+            const hashed = await bcrypt.hash(newPassword,10);
+            user.password = hashed;
+            await this.userRepo.save(user);
+
+            return { message : 'Password has been reset successfully.'};
+            
+        }catch(err){
+            throw new UnauthorizedException('Invalid or expired reset token');
+        }
+    }
+
+
 }
