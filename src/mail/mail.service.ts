@@ -43,4 +43,16 @@ export class MailService {
             `,
         });
     }
+
+    async sellerWelcomeEmail (to:string, otp:string){
+        await this.transporter.sendMail({
+            to,
+            subject:'Seller Register OTP',
+            html:`
+            <p>You Successfully Registered.Wait for Admin Approval.Once Admin approved you can login you account.</p>
+            <p>Your Registration OTP to Login : ${otp} </p>
+            `,
+
+        });
+    }
 }
