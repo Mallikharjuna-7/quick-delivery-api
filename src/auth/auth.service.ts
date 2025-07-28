@@ -46,7 +46,7 @@ export class AuthService {
         const isMatch = await bcrypt.compare(dto.password,user.password);
         if(!isMatch) throw new UnauthorizedException('Invalid password');
 
-        const payload = {sub:user.id, email:user.email};
+        const payload = {sub:user.id, email:user.email, role:user.role};
         
         const accessToken = await this.jwtService.signAsync(payload,{
             secret:'access_secret',

@@ -55,4 +55,14 @@ export class MailService {
 
         });
     }
+
+    async sendApprovalMail(to:string){
+        await this.transporter.sendMail({
+            to,
+            subject:'Your Seller Request is Approved',
+            html:`
+            <p>You can now log in  to the Quick Delivery App as a seller</p>
+            `,
+        });
+    }
 }
