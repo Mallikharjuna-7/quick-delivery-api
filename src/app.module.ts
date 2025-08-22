@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailService } from './mail/mail.service';
 import { SellerModule } from './seller/seller.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SellerModule } from './seller/seller.module';
     UserModule,
     AuthModule,
     SellerModule,
+    ProductModule,
   ],
   
   controllers: [AppController],
