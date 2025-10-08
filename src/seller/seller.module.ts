@@ -6,10 +6,11 @@ import { SellerController } from "./seller.controller";
 import { SellerService } from "./seller.service";
 import { JwtModule } from "@nestjs/jwt";
 import { RolesGuard } from "src/common/guards/roles.guard";
+import { LoggerModule } from "src/logger/logger.module";
 
 @Module({
         imports:
-        [TypeOrmModule.forFeature([SellerEntity]),MailModule,JwtModule,],
+        [TypeOrmModule.forFeature([SellerEntity]),MailModule,JwtModule,LoggerModule,],
         controllers:[SellerController],
         providers:[SellerService,RolesGuard],
 })

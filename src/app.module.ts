@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailService } from './mail/mail.service';
 import { SellerModule } from './seller/seller.module';
 import { ProductModule } from './product/product.module';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ProductModule } from './product/product.module';
       }),
       inject:[ConfigService],
     }),
+    LoggerModule,
     UserModule,
     AuthModule,
     SellerModule,
